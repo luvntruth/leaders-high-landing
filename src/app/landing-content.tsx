@@ -69,7 +69,7 @@ const VARIANT_CONFIG: Record<
   },
   "new-manager": {
     badge: "신임 팀장용 AI 코칭 시뮬레이터",
-    headline: ["처음 팀장이 된 순간,", "가장 먼저 필요한 건 대화 연습입니다"],
+    headline: ["처음 팀장이 된 순간,", "가장 먼저 필요한 건", "대화 연습입니다"],
     description: [
       "피드백, 면담, 갈등 조율까지 막막한 순간을,",
       "AI 팀원과 안전하게 먼저 연습해보세요.",
@@ -308,6 +308,12 @@ function Hero({ variant, buildTrackedServiceUrl, trackCtaClick }: { variant: Lan
               {content.headline[0]}
               <br />
               <span className="text-primary">{content.headline[1]}</span>
+              {content.headline[2] ? (
+                <>
+                  <br />
+                  <span className="text-primary">{content.headline[2]}</span>
+                </>
+              ) : null}
             </motion.h1>
 
             <motion.p variants={fadeUp} className="text-lg text-muted-foreground mb-8 max-w-lg mx-auto lg:mx-0">
@@ -632,7 +638,7 @@ function FeaturesSection() {
           </h2>
         </motion.div>
 
-        <motion.div variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <motion.div variants={stagger} className="grid sm:grid-cols-2 gap-5 max-w-4xl mx-auto">
           {features.map((f) => (
             <motion.div
               key={f.title}
