@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -26,6 +26,74 @@ import {
 } from "lucide-react";
 
 const SERVICE_URL = "https://leader-s-high.vercel.app/#/";
+
+type LandingVariant = "practice" | "diagnosis" | "new-manager";
+
+const VARIANT_CONFIG: Record<
+  LandingVariant,
+  {
+    badge: string;
+    headline: string[];
+    description: string[];
+    primaryCta: string;
+    secondaryCta: string;
+    microcopy: string;
+    problemEyebrow: string;
+    problemTitle: string;
+    problemDescription: string;
+  }
+> = {
+  practice: {
+    badge: "AI 리더십 코칭 시뮬레이터",
+    headline: ["팀원과의 어려운 대화,", "연습하면 달라집니다"],
+    description: [
+      "AI 팀원과 40가지 실전 시나리오를 연습하고,",
+      "실시간 코칭으로 리더십 스킬을 키우세요.",
+    ],
+    primaryCta: "무료 체험 시작",
+    secondaryCta: "어떻게 작동하나요?",
+    microcopy: "가입 없이 바로 시작 · 3개 시나리오 무료",
+    problemEyebrow: "공감",
+    problemTitle: "팀장이 되면 아무도 안 알려주는 것들",
+    problemDescription: "처음 팀장이 된 당신, 이런 상황에서 어떻게 하시겠어요?",
+  },
+  diagnosis: {
+    badge: "AI 리더십 진단 시뮬레이터",
+    headline: ["그 대화가 왜 꼬였는지,", "AI와 다시 진단해보세요"],
+    description: [
+      "이미 지나간 어려운 면담도 다시 복기하고,",
+      "어디서 관계와 신뢰가 흔들렸는지 바로 확인하세요.",
+    ],
+    primaryCta: "문제 대화 진단하기",
+    secondaryCta: "진단 방식 보기",
+    microcopy: "가입 없이 바로 시작 · 문제 대화 3개 무료 진단",
+    problemEyebrow: "문제 인식",
+    problemTitle: "대화는 끝났는데, 찜찜함은 남아 있나요?",
+    problemDescription: "어디서 잘못 말했는지 모르겠다면, 다시 재현하고 진단해야 합니다.",
+  },
+  "new-manager": {
+    badge: "신임 팀장용 AI 코칭 시뮬레이터",
+    headline: ["처음 팀장이 된 순간,", "가장 먼저 필요한 건 대화 연습입니다"],
+    description: [
+      "피드백, 면담, 갈등 조율까지 막막한 순간을,",
+      "AI 팀원과 안전하게 먼저 연습해보세요.",
+    ],
+    primaryCta: "신임 팀장 연습 시작",
+    secondaryCta: "어떤 상황이 있나요?",
+    microcopy: "가입 없이 바로 시작 · 신임 팀장 필수 시나리오 3개 무료",
+    problemEyebrow: "신임 팀장",
+    problemTitle: "처음 팀을 맡으면, 대화가 제일 어렵습니다",
+    problemDescription: "실무는 익숙해도 면담은 처음이라면, 말 한마디가 더 무겁게 느껴집니다.",
+  },
+};
+
+function normalizeVariant(value: string | null): LandingVariant {
+  if (value === "practice" || value === "diagnosis" || value === "new-manager") {
+    return value;
+  }
+
+  return "practice";
+}
 
 /* ─── Animation variants ─── */
 const fadeUp = {
@@ -145,7 +213,9 @@ function Nav() {
 }
 
 /* ─── Hero ─── */
-function Hero() {
+function Hero({ variant }: { variant: LandingVariant }) {
+  const content = VARIANT_CONFIG[variant];
+
   return (
     <section className="relative overflow-hidden pt-28 pb-20 md:pt-36 md:pb-28">
       {/* Subtle grid bg */}
@@ -175,7 +245,7 @@ function Hero() {
             <motion.div variants={fadeUp}>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1 text-xs font-medium text-primary mb-6">
                 <Sparkles className="h-3 w-3" />
-                AI 리더십 코칭 시뮬레이터
+                {content.badge}
               </span>
             </motion.div>
 
@@ -183,15 +253,15 @@ function Hero() {
               variants={fadeUp}
               className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.15] text-foreground mb-5"
             >
-              팀원과의 어려운 대화,
+              {content.headline[0]}
               <br />
-              <span className="text-primary">연습하면 달라집니다</span>
+              <span className="text-primary">{content.headline[1]}</span>
             </motion.h1>
 
             <motion.p variants={fadeUp} className="text-lg text-muted-foreground mb-8 max-w-lg mx-auto lg:mx-0">
-              AI 팀원과 40가지 실전 시나리오를 연습하고,
+              {content.description[0]}
               <br className="hidden sm:block" />
-              실시간 코칭으로 리더십 스킬을 키우세요.
+              {content.description[1]}
             </motion.p>
 
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
@@ -201,19 +271,19 @@ function Hero() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
               >
-                무료 체험 시작
+                {content.primaryCta}
                 <ArrowRight className="h-4 w-4" />
               </a>
               <a
                 href="#how"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-7 py-3.5 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
               >
-                어떻게 작동하나요?
+                {content.secondaryCta}
               </a>
             </motion.div>
 
             <motion.p variants={fadeUp} className="mt-6 text-xs text-muted-foreground/70">
-              가입 없이 바로 시작 &middot; 3개 시나리오 무료
+              {content.microcopy}
             </motion.p>
           </div>
 
@@ -303,7 +373,9 @@ const problems = [
   { emoji: "😶", title: "피드백 불안", desc: "솔직한 피드백을 주면 관계가 나빠질까 봐 망설여집니다." },
 ];
 
-function ProblemSection() {
+function ProblemSection({ variant }: { variant: LandingVariant }) {
+  const content = VARIANT_CONFIG[variant];
+
   return (
     <section className="py-20 md:py-28 bg-gradient-to-b from-white to-slate-50/80">
       <motion.div
@@ -314,12 +386,12 @@ function ProblemSection() {
         variants={stagger}
       >
         <motion.div variants={fadeUp} className="text-center mb-14">
-          <span className="text-sm font-medium text-rose-500 mb-2 block">공감</span>
+          <span className="text-sm font-medium text-rose-500 mb-2 block">{content.problemEyebrow}</span>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
-            팀장이 되면 아무도 안 알려주는 것들
+            {content.problemTitle}
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            처음 팀장이 된 당신, 이런 상황에서 어떻게 하시겠어요?
+            {content.problemDescription}
           </p>
         </motion.div>
 
@@ -986,11 +1058,19 @@ function Footer() {
 
 /* ─── Main Export ─── */
 export default function LandingContent() {
+  const variant = useMemo(() => {
+    if (typeof window === "undefined") {
+      return "practice" as LandingVariant;
+    }
+
+    return normalizeVariant(new URLSearchParams(window.location.search).get("lp"));
+  }, []);
+
   return (
     <div className="bg-background text-foreground min-h-screen" style={{ scrollBehavior: "smooth" }}>
       <Nav />
-      <Hero />
-      <ProblemSection />
+      <Hero variant={variant} />
+      <ProblemSection variant={variant} />
       <SolutionSection />
       <HowItWorksSection />
       <FeaturesSection />
