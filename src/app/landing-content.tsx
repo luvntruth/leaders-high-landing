@@ -21,7 +21,7 @@ import {
   LifeBuoy,
 } from "lucide-react";
 
-const SERVICE_URL = "https://leader-s-high.vercel.app/#/";
+const SERVICE_URL = "https://leader-s-high.vercel.app/#/onboarding";
 
 type LandingVariant = "practice" | "diagnosis" | "new-manager";
 
