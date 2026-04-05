@@ -87,12 +87,66 @@ const VARIANT_CONFIG: Record<
   },
 };
 
+type AttributionParams = {
+  lp: LandingVariant;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+};
+
+type CtaContext = {
+  variant: LandingVariant;
+  attribution: AttributionParams;
+  trackCtaClick: (placement: string, target: string) => void;
+  buildTrackedServiceUrl: (placement: string) => string;
+};
+
 function normalizeVariant(value: string | null): LandingVariant {
   if (value === "practice" || value === "diagnosis" || value === "new-manager") {
     return value;
   }
 
   return "practice";
+}
+
+function readAttribution(search: string): AttributionParams {
+  const params = new URLSearchParams(search);
+  const lp = normalizeVariant(params.get("lp"));
+
+  return {
+    lp,
+    utm_source: params.get("utm_source") ?? undefined,
+    utm_medium: params.get("utm_medium") ?? undefined,
+    utm_campaign: params.get("utm_campaign") ?? undefined,
+    utm_content: params.get("utm_content") ?? undefined,
+    utm_term: params.get("utm_term") ?? undefined,
+  };
+}
+
+function buildServiceUrl(attribution: AttributionParams, placement: string) {
+  const targetUrl = new URL(SERVICE_URL);
+
+  targetUrl.searchParams.set("lp", attribution.lp);
+  targetUrl.searchParams.set("cta", placement);
+
+  if (attribution.utm_source) targetUrl.searchParams.set("utm_source", attribution.utm_source);
+  if (attribution.utm_medium) targetUrl.searchParams.set("utm_medium", attribution.utm_medium);
+  if (attribution.utm_campaign) targetUrl.searchParams.set("utm_campaign", attribution.utm_campaign);
+  if (attribution.utm_content) targetUrl.searchParams.set("utm_content", attribution.utm_content);
+  if (attribution.utm_term) targetUrl.searchParams.set("utm_term", attribution.utm_term);
+
+  return targetUrl.toString();
+}
+
+function trackEvent(name: string, payload: Record<string, unknown>) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent("leadershigh:tracking", { detail: { name, payload } }));
+  console.info(`[tracking] ${name}`, payload);
 }
 
 /* ─── Animation variants ─── */
@@ -112,7 +166,7 @@ const staggerFast = {
 };
 
 /* ─── Nav ─── */
-function Nav() {
+function Nav({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -157,9 +211,10 @@ function Nav() {
             </a>
           ))}
           <a
-            href={SERVICE_URL}
+            href={buildTrackedServiceUrl("nav-desktop")}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackCtaClick("nav-desktop", SERVICE_URL)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             무료로 시작하기
@@ -197,9 +252,10 @@ function Nav() {
                 </a>
               ))}
               <a
-                href={SERVICE_URL}
+                href={buildTrackedServiceUrl("nav-mobile")}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackCtaClick("nav-mobile", SERVICE_URL)}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
               >
                 무료로 시작하기
@@ -213,7 +269,7 @@ function Nav() {
 }
 
 /* ─── Hero ─── */
-function Hero({ variant }: { variant: LandingVariant }) {
+function Hero({ variant, buildTrackedServiceUrl, trackCtaClick }: { variant: LandingVariant } & Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
   const content = VARIANT_CONFIG[variant];
 
   return (
@@ -266,9 +322,10 @@ function Hero({ variant }: { variant: LandingVariant }) {
 
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
               <a
-                href={SERVICE_URL}
+                href={buildTrackedServiceUrl("hero-primary")}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackCtaClick("hero-primary", SERVICE_URL)}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
               >
                 {content.primaryCta}
@@ -612,7 +669,7 @@ function FeaturesSection() {
 }
 
 /* ─── Demo Preview ─── */
-function DemoPreview() {
+function DemoPreview({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
   return (
     <section className="py-20 md:py-28 bg-gradient-to-b from-white to-slate-50/80">
       <motion.div
@@ -695,9 +752,10 @@ function DemoPreview() {
 
           <div className="text-center mt-8">
             <a
-              href={SERVICE_URL}
+              href={buildTrackedServiceUrl("demo-preview")}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackCtaClick("demo-preview", SERVICE_URL)}
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
             >
               직접 체험해보기
@@ -821,7 +879,15 @@ const plans = [
   },
 ];
 
-function PricingSection() {
+function PricingSection({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
+  const trackedPlans = plans.map((plan) => ({
+    ...plan,
+    priceOptions: plan.priceOptions.map((option, index) => ({
+      ...option,
+      href: option.disabled ? option.href : buildTrackedServiceUrl(`pricing-${plan.name}-${index + 1}`),
+    })),
+  }));
+
   return (
     <section id="pricing" className="py-20 md:py-28 bg-gradient-to-b from-slate-50/80 to-white">
       <motion.div
@@ -839,7 +905,7 @@ function PricingSection() {
         </motion.div>
 
         <motion.div variants={stagger} className="grid md:grid-cols-3 gap-6 items-start">
-          {plans.map((p) => (
+          {trackedPlans.map((p) => (
             <motion.div
               key={p.name}
               variants={fadeUp}
@@ -875,6 +941,7 @@ function PricingSection() {
                         href={opt.href}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => trackCtaClick(`pricing-${p.name}-${i + 1}`, SERVICE_URL)}
                         className="flex items-center justify-between rounded-xl border border-border px-4 py-3 hover:border-primary/40 hover:bg-primary/5 transition-colors group"
                       >
                         <div className="flex items-baseline gap-1.5">
@@ -986,7 +1053,7 @@ function FAQSection() {
 }
 
 /* ─── Final CTA ─── */
-function FinalCTA() {
+function FinalCTA({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
   return (
     <section className="py-20 md:py-28">
       <motion.div
@@ -1018,9 +1085,10 @@ function FinalCTA() {
               3개 시나리오를 무료로 체험할 수 있습니다. 가입 없이 바로 시작해보세요.
             </p>
             <a
-              href={SERVICE_URL}
+              href={buildTrackedServiceUrl("final-cta")}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackCtaClick("final-cta", SERVICE_URL)}
               className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-sm font-semibold text-primary hover:bg-white/90 transition-colors shadow-lg"
             >
               무료 체험 시작
@@ -1034,7 +1102,7 @@ function FinalCTA() {
 }
 
 /* ─── Footer ─── */
-function Footer() {
+function Footer({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
   return (
     <footer className="border-t border-border py-10">
       <div className="mx-auto max-w-6xl px-5 flex flex-col md:flex-row items-center justify-between gap-4">
@@ -1045,7 +1113,13 @@ function Footer() {
           Leader&apos;s High
         </div>
         <div className="flex items-center gap-6 text-xs text-muted-foreground">
-          <a href={SERVICE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
+          <a
+            href={buildTrackedServiceUrl("footer-service-link")}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackCtaClick("footer-service-link", SERVICE_URL)}
+            className="hover:text-foreground transition-colors"
+          >
             서비스 바로가기
           </a>
           <span>|</span>
@@ -1058,28 +1132,49 @@ function Footer() {
 
 /* ─── Main Export ─── */
 export default function LandingContent() {
-  const variant = useMemo(() => {
+  const attribution = useMemo(() => {
     if (typeof window === "undefined") {
-      return "practice" as LandingVariant;
+      return readAttribution("");
     }
 
-    return normalizeVariant(new URLSearchParams(window.location.search).get("lp"));
+    return readAttribution(window.location.search);
   }, []);
+
+  const variant = attribution.lp;
+
+  useEffect(() => {
+    trackEvent("landing_variant_view", {
+      variant,
+      ...attribution,
+      path: typeof window !== "undefined" ? window.location.pathname : "/",
+    });
+  }, [attribution, variant]);
+
+  const buildTrackedServiceUrl = (placement: string) => buildServiceUrl(attribution, placement);
+
+  const trackCtaClick = (placement: string, target: string) => {
+    trackEvent("cta_click", {
+      variant,
+      placement,
+      target,
+      ...attribution,
+    });
+  };
 
   return (
     <div className="bg-background text-foreground min-h-screen" style={{ scrollBehavior: "smooth" }}>
-      <Nav />
-      <Hero variant={variant} />
+      <Nav buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
+      <Hero variant={variant} buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
       <ProblemSection variant={variant} />
       <SolutionSection />
       <HowItWorksSection />
       <FeaturesSection />
-      <DemoPreview />
+      <DemoPreview buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
       <SocialProofSection />
-      <PricingSection />
+      <PricingSection buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
       <FAQSection />
-      <FinalCTA />
-      <Footer />
+      <FinalCTA buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
+      <Footer buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
     </div>
   );
 }
