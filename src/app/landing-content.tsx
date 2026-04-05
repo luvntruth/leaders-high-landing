@@ -823,17 +823,16 @@ const plans = [
   },
   {
     name: "프로",
-    desc: "반복 연습이 필요한 팀장을 위한 기본 플랜",
+    desc: "반복 연습이 필요한 팀장을 위한 대표 플랜",
     highlight: true,
     priceOptions: [
       { price: "₩8,900", period: "/ 10일", href: SERVICE_URL, cta: "결제하기 →", disabled: false },
-      { price: "₩13,500", period: "/ 20일", href: SERVICE_URL, cta: "결제하기 →", disabled: false },
     ],
     features: [
       "20개 시나리오 · 시나리오당 3회",
       "풀 피드백 리포트",
       "실시간 즉시 코칭",
-      "음성 시뮬레이션",
+      "이전 기록 보관 및 비교",
     ],
   },
 ];
@@ -856,14 +855,26 @@ function PricingSection({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaConte
         viewport={{ once: true, margin: "-80px" }}
         variants={stagger}
       >
-        <motion.div variants={fadeUp} className="text-center mb-14">
-          <span className="text-sm font-medium text-primary mb-2 block">요금제</span>
+        <motion.div variants={fadeUp} className="text-center mb-10">
+          <span className="text-sm font-medium text-primary mb-2 block">업그레이드는 나중에</span>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
-            먼저 무료로 확인하고, 필요하면 확장하세요
+            지금은 무료 체험만 확인해도 충분합니다
           </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            이 페이지의 목적은 가격 비교가 아니라, 어떤 메시지가 체험 시작을 가장 잘 만드는지 확인하는 것입니다.
+          </p>
         </motion.div>
 
-        <motion.div variants={stagger} className="grid md:grid-cols-3 gap-6 items-start">
+        <motion.div variants={fadeUp} className="max-w-3xl mx-auto mb-8 rounded-2xl border border-primary/15 bg-primary/5 p-6 text-left">
+          <p className="text-sm font-semibold text-primary mb-2">먼저 여기까지만 보면 됩니다</p>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li>• 무료 시나리오 3개 체험</li>
+            <li>• 가입 없이 바로 시작</li>
+            <li>• 체험 후 필요할 때만 프로 플랜 검토</li>
+          </ul>
+        </motion.div>
+
+        <motion.div variants={stagger} className="grid md:grid-cols-2 gap-6 items-start max-w-4xl mx-auto justify-center">
           {trackedPlans.map((p) => (
             <motion.div
               key={p.name}
@@ -879,7 +890,7 @@ function PricingSection({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaConte
                   가장 인기
                 </span>
               )}
-              <h3 className={`text-lg font-bold mb-1 ${p.highlight ? "text-primary" : p.name === "울트라" ? "text-primary" : "text-foreground"}`}>{p.name}</h3>
+              <h3 className={`text-lg font-bold mb-1 ${p.highlight ? "text-primary" : "text-foreground"}`}>{p.name}</h3>
               <p className="text-sm text-muted-foreground mb-5">{p.desc}</p>
 
               {/* Price options */}
