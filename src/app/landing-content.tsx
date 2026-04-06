@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -10,8 +10,6 @@ import {
   Shield,
   Zap,
   BarChart3,
-  Gamepad2,
-  Settings,
   ChevronDown,
   Check,
   X,
@@ -19,13 +17,133 @@ import {
   Brain,
   Users,
   FileText,
-  Star,
   Clock,
-  TrendingUp,
   LifeBuoy,
 } from "lucide-react";
 
-const SERVICE_URL = "https://leader-s-high.vercel.app/#/";
+const SERVICE_URL = "https://leader-s-high.vercel.app/#/onboarding";
+
+type LandingVariant = "practice" | "diagnosis" | "new-manager";
+
+const VARIANT_CONFIG: Record<
+  LandingVariant,
+  {
+    badge: string;
+    headline: string[];
+    description: string[];
+    primaryCta: string;
+    secondaryCta: string;
+    microcopy: string;
+    problemEyebrow: string;
+    problemTitle: string;
+    problemDescription: string;
+  }
+> = {
+  practice: {
+    badge: "AI 리더십 코칭 시뮬레이터",
+    headline: ["팀원과의 어려운 대화,", "연습하면 달라집니다"],
+    description: [
+      "AI 팀원과 40가지 실전 시나리오를 연습하고,",
+      "실시간 코칭으로 리더십 스킬을 키우세요.",
+    ],
+    primaryCta: "무료 체험 시작",
+    secondaryCta: "어떻게 작동하나요?",
+    microcopy: "가입 없이 바로 시작 · 3개 시나리오 무료",
+    problemEyebrow: "공감",
+    problemTitle: "팀장이 되면 아무도 안 알려주는 것들",
+    problemDescription: "처음 팀장이 된 당신, 이런 상황에서 어떻게 하시겠어요?",
+  },
+  diagnosis: {
+    badge: "AI 리더십 진단 시뮬레이터",
+    headline: ["그 대화가 왜 꼬였는지,", "AI와 다시 진단해보세요"],
+    description: [
+      "이미 지나간 어려운 면담도 다시 복기하고,",
+      "어디서 관계와 신뢰가 흔들렸는지 바로 확인하세요.",
+    ],
+    primaryCta: "문제 대화 진단하기",
+    secondaryCta: "진단 방식 보기",
+    microcopy: "가입 없이 바로 시작 · 문제 대화 3개 무료 진단",
+    problemEyebrow: "문제 인식",
+    problemTitle: "대화는 끝났는데, 찜찜함은 남아 있나요?",
+    problemDescription: "어디서 잘못 말했는지 모르겠다면, 다시 재현하고 진단해야 합니다.",
+  },
+  "new-manager": {
+    badge: "신임 팀장용 AI 코칭 시뮬레이터",
+    headline: ["처음 팀장이 된 순간,", "가장 먼저 필요한 건", "대화 연습입니다"],
+    description: [
+      "피드백, 면담, 갈등 조율까지 막막한 순간을,",
+      "AI 팀원과 안전하게 먼저 연습해보세요.",
+    ],
+    primaryCta: "신임 팀장 연습 시작",
+    secondaryCta: "어떤 상황이 있나요?",
+    microcopy: "가입 없이 바로 시작 · 신임 팀장 필수 시나리오 3개 무료",
+    problemEyebrow: "신임 팀장",
+    problemTitle: "처음 팀을 맡으면, 대화가 제일 어렵습니다",
+    problemDescription: "실무는 익숙해도 면담은 처음이라면, 말 한마디가 더 무겁게 느껴집니다.",
+  },
+};
+
+type AttributionParams = {
+  lp: LandingVariant;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+};
+
+type CtaContext = {
+  variant: LandingVariant;
+  attribution: AttributionParams;
+  trackCtaClick: (placement: string, target: string) => void;
+  buildTrackedServiceUrl: (placement: string) => string;
+};
+
+function normalizeVariant(value: string | null): LandingVariant {
+  if (value === "practice" || value === "diagnosis" || value === "new-manager") {
+    return value;
+  }
+
+  return "practice";
+}
+
+function readAttribution(search: string): AttributionParams {
+  const params = new URLSearchParams(search);
+  const lp = normalizeVariant(params.get("lp"));
+
+  return {
+    lp,
+    utm_source: params.get("utm_source") ?? undefined,
+    utm_medium: params.get("utm_medium") ?? undefined,
+    utm_campaign: params.get("utm_campaign") ?? undefined,
+    utm_content: params.get("utm_content") ?? undefined,
+    utm_term: params.get("utm_term") ?? undefined,
+  };
+}
+
+function buildServiceUrl(attribution: AttributionParams, placement: string) {
+  const targetUrl = new URL(SERVICE_URL);
+
+  targetUrl.searchParams.set("lp", attribution.lp);
+  targetUrl.searchParams.set("cta", placement);
+
+  if (attribution.utm_source) targetUrl.searchParams.set("utm_source", attribution.utm_source);
+  if (attribution.utm_medium) targetUrl.searchParams.set("utm_medium", attribution.utm_medium);
+  if (attribution.utm_campaign) targetUrl.searchParams.set("utm_campaign", attribution.utm_campaign);
+  if (attribution.utm_content) targetUrl.searchParams.set("utm_content", attribution.utm_content);
+  if (attribution.utm_term) targetUrl.searchParams.set("utm_term", attribution.utm_term);
+
+  return targetUrl.toString();
+}
+
+function trackEvent(name: string, payload: Record<string, unknown>) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent("leadershigh:tracking", { detail: { name, payload } }));
+  console.info(`[tracking] ${name}`, payload);
+}
 
 /* ─── Animation variants ─── */
 const fadeUp = {
@@ -44,7 +162,7 @@ const staggerFast = {
 };
 
 /* ─── Nav ─── */
-function Nav() {
+function Nav({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -89,9 +207,10 @@ function Nav() {
             </a>
           ))}
           <a
-            href={SERVICE_URL}
+            href={buildTrackedServiceUrl("nav-desktop")}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackCtaClick("nav-desktop", SERVICE_URL)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             무료로 시작하기
@@ -129,9 +248,10 @@ function Nav() {
                 </a>
               ))}
               <a
-                href={SERVICE_URL}
+                href={buildTrackedServiceUrl("nav-mobile")}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackCtaClick("nav-mobile", SERVICE_URL)}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
               >
                 무료로 시작하기
@@ -145,7 +265,9 @@ function Nav() {
 }
 
 /* ─── Hero ─── */
-function Hero() {
+function Hero({ variant, buildTrackedServiceUrl, trackCtaClick }: { variant: LandingVariant } & Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
+  const content = VARIANT_CONFIG[variant];
+
   return (
     <section className="relative overflow-hidden pt-28 pb-20 md:pt-36 md:pb-28">
       {/* Subtle grid bg */}
@@ -175,7 +297,7 @@ function Hero() {
             <motion.div variants={fadeUp}>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1 text-xs font-medium text-primary mb-6">
                 <Sparkles className="h-3 w-3" />
-                AI 리더십 코칭 시뮬레이터
+                {content.badge}
               </span>
             </motion.div>
 
@@ -183,37 +305,44 @@ function Hero() {
               variants={fadeUp}
               className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.15] text-foreground mb-5"
             >
-              팀원과의 어려운 대화,
+              {content.headline[0]}
               <br />
-              <span className="text-primary">연습하면 달라집니다</span>
+              <span className="text-primary">{content.headline[1]}</span>
+              {content.headline[2] ? (
+                <>
+                  <br />
+                  <span className="text-primary">{content.headline[2]}</span>
+                </>
+              ) : null}
             </motion.h1>
 
             <motion.p variants={fadeUp} className="text-lg text-muted-foreground mb-8 max-w-lg mx-auto lg:mx-0">
-              AI 팀원과 40가지 실전 시나리오를 연습하고,
+              {content.description[0]}
               <br className="hidden sm:block" />
-              실시간 코칭으로 리더십 스킬을 키우세요.
+              {content.description[1]}
             </motion.p>
 
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
               <a
-                href={SERVICE_URL}
+                href={buildTrackedServiceUrl("hero-primary")}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackCtaClick("hero-primary", SERVICE_URL)}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
               >
-                무료 체험 시작
+                {content.primaryCta}
                 <ArrowRight className="h-4 w-4" />
               </a>
               <a
                 href="#how"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-7 py-3.5 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
               >
-                어떻게 작동하나요?
+                {content.secondaryCta}
               </a>
             </motion.div>
 
             <motion.p variants={fadeUp} className="mt-6 text-xs text-muted-foreground/70">
-              가입 없이 바로 시작 &middot; 3개 시나리오 무료
+              {content.microcopy}
             </motion.p>
           </div>
 
@@ -303,7 +432,9 @@ const problems = [
   { emoji: "😶", title: "피드백 불안", desc: "솔직한 피드백을 주면 관계가 나빠질까 봐 망설여집니다." },
 ];
 
-function ProblemSection() {
+function ProblemSection({ variant }: { variant: LandingVariant }) {
+  const content = VARIANT_CONFIG[variant];
+
   return (
     <section className="py-20 md:py-28 bg-gradient-to-b from-white to-slate-50/80">
       <motion.div
@@ -314,12 +445,12 @@ function ProblemSection() {
         variants={stagger}
       >
         <motion.div variants={fadeUp} className="text-center mb-14">
-          <span className="text-sm font-medium text-rose-500 mb-2 block">공감</span>
+          <span className="text-sm font-medium text-rose-500 mb-2 block">{content.problemEyebrow}</span>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
-            팀장이 되면 아무도 안 알려주는 것들
+            {content.problemTitle}
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            처음 팀장이 된 당신, 이런 상황에서 어떻게 하시겠어요?
+            {content.problemDescription}
           </p>
         </motion.div>
 
@@ -466,39 +597,27 @@ function HowItWorksSection() {
 const features = [
   {
     icon: Brain,
-    title: "스킬 진단",
-    desc: "시뮬레이션을 통해 경청, 공감, 질문, 피드백 등 면담 스킬을 진단합니다.",
+    title: "실전 대화 진단",
+    desc: "시뮬레이션을 통해 경청, 공감, 질문, 피드백 중 어디서 대화가 흔들리는지 바로 확인합니다.",
     color: "text-primary bg-primary/10",
   },
   {
     icon: Zap,
-    title: "인스턴트 코칭",
-    desc: "대화 중간에 내가 한 말에 대한 즉각적인 피드백을 받을 수 있습니다.",
+    title: "즉시 코칭",
+    desc: "내가 방금 한 말이 어떤 영향을 주는지 바로 피드백받고 다음 대응을 조정합니다.",
     color: "text-emerald-600 bg-emerald-50",
   },
   {
     icon: LifeBuoy,
-    title: "SOS 모드",
-    desc: "막히는 순간, 해당 상황에서의 이상적인 발언과 전략을 바로 배웁니다.",
+    title: "막히는 순간 SOS",
+    desc: "어려운 순간에는 바로 쓸 수 있는 발언 예시와 대응 전략을 확인할 수 있습니다.",
     color: "text-rose-500 bg-rose-50",
   },
   {
     icon: BarChart3,
-    title: "상세 리포트",
-    desc: "GOOD/BAD 포인트, 골든 스크립트, 구체적 액션 아이템이 담긴 리포트.",
+    title: "대화 리포트",
+    desc: "GOOD/BAD 포인트와 다음 면담에서 바로 쓸 개선 포인트를 정리해줍니다.",
     color: "text-primary bg-primary/10",
-  },
-  {
-    icon: Gamepad2,
-    title: "게이미피케이션",
-    desc: "XP, 레벨, 신뢰도 점수, 퀘스트로 동기부여하며 성장할 수 있습니다.",
-    color: "text-amber-600 bg-amber-50",
-  },
-  {
-    icon: Settings,
-    title: "맞춤 시나리오",
-    desc: "우리 팀 상황에 딱 맞는 시나리오를 직접 만들어 연습하세요. (Pro+)",
-    color: "text-violet-600 bg-violet-50",
   },
 ];
 
@@ -515,11 +634,11 @@ function FeaturesSection() {
         <motion.div variants={fadeUp} className="text-center mb-14">
           <span className="text-sm font-medium text-primary mb-2 block">핵심 기능</span>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
-            리더의 성장을 돕는 핵심 기능
+            대화가 달라지도록 돕는 핵심 기능
           </h2>
         </motion.div>
 
-        <motion.div variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <motion.div variants={stagger} className="grid sm:grid-cols-2 gap-5 max-w-4xl mx-auto">
           {features.map((f) => (
             <motion.div
               key={f.title}
@@ -540,7 +659,7 @@ function FeaturesSection() {
 }
 
 /* ─── Demo Preview ─── */
-function DemoPreview() {
+function DemoPreview({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
   return (
     <section className="py-20 md:py-28 bg-gradient-to-b from-white to-slate-50/80">
       <motion.div
@@ -623,9 +742,10 @@ function DemoPreview() {
 
           <div className="text-center mt-8">
             <a
-              href={SERVICE_URL}
+              href={buildTrackedServiceUrl("demo-preview")}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackCtaClick("demo-preview", SERVICE_URL)}
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
             >
               직접 체험해보기
@@ -638,15 +758,26 @@ function DemoPreview() {
   );
 }
 
-/* ─── Social Proof ─── */
-const stats = [
-  { icon: Target, value: "40+", label: "실전 시나리오" },
-  { icon: Zap, value: "실시간", label: "AI 코칭" },
-  { icon: Clock, value: "30분", label: "평균 연습 시간" },
-  { icon: TrendingUp, value: "3단계", label: "체계적 성장" },
+/* ─── Evidence ─── */
+const evidencePoints = [
+  {
+    icon: Target,
+    title: "40+ 실전 시나리오",
+    desc: "저성과자 피드백, 갈등 조율, 퇴사 방지 대화처럼 실제 팀장이 자주 마주치는 상황을 연습합니다.",
+  },
+  {
+    icon: Zap,
+    title: "대화 중 즉시 피드백",
+    desc: "좋았던 말과 위험했던 말을 바로 알려줘, 면담이 어디서 흔들리는지 즉시 파악할 수 있습니다.",
+  },
+  {
+    icon: Clock,
+    title: "짧게 시작, 바로 적용",
+    desc: "한 번의 연습으로 끝내지 않고, 오늘 필요한 대화를 실제 면담 전에 빠르게 리허설할 수 있습니다.",
+  },
 ];
 
-function SocialProofSection() {
+function EvidenceSection() {
   return (
     <section className="py-20 md:py-24">
       <motion.div
@@ -657,42 +788,24 @@ function SocialProofSection() {
         variants={stagger}
       >
         <motion.div variants={fadeUp} className="text-center mb-12">
+          <span className="text-sm font-medium text-primary mb-2 block">왜 지금 필요한가</span>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
-            숫자로 보는 Leader&apos;s High
+            실전 전에 연습해야, 실제 대화가 덜 꼬입니다
           </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Leader&apos;s High는 멋진 이론보다, 오늘 바로 써야 하는 어려운 대화를 먼저 연습하게 만드는 데 집중합니다.
+          </p>
         </motion.div>
 
-        <motion.div variants={stagger} className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {stats.map((s) => (
-            <motion.div key={s.label} variants={fadeUp} className="text-center">
-              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/5 mb-4">
-                <s.icon className="h-7 w-7 text-primary" />
+        <motion.div variants={stagger} className="grid md:grid-cols-3 gap-5">
+          {evidencePoints.map((item) => (
+            <motion.div key={item.title} variants={fadeUp} className="rounded-2xl border border-border bg-white p-6">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 mb-4">
+                <item.icon className="h-6 w-6 text-primary" />
               </div>
-              <p className="text-3xl font-bold text-foreground mb-1">{s.value}</p>
-              <p className="text-sm text-muted-foreground">{s.label}</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
             </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Placeholder testimonials */}
-        <motion.div variants={fadeUp} className="mt-16 grid md:grid-cols-3 gap-5">
-          {[
-            { quote: "실제 면담 전에 연습할 수 있어서 훨씬 자신감이 생겼어요.", name: "김OO 팀장", role: "IT기업 개발팀" },
-            { quote: "SOS 기능 덕분에 막히는 순간에도 좋은 대화를 이어갈 수 있었습니다.", name: "이OO 팀장", role: "금융사 영업팀" },
-            { quote: "리포트의 골든 스크립트가 실전에서 정말 유용했습니다.", name: "박OO 팀장", role: "스타트업 기획팀" },
-          ].map((t) => (
-            <div key={t.name} className="rounded-2xl border border-border bg-white p-6">
-              <div className="flex gap-0.5 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <p className="text-sm text-foreground leading-relaxed mb-4">&ldquo;{t.quote}&rdquo;</p>
-              <div>
-                <p className="text-sm font-semibold text-foreground">{t.name}</p>
-                <p className="text-xs text-muted-foreground">{t.role}</p>
-              </div>
-            </div>
           ))}
         </motion.div>
       </motion.div>
@@ -704,7 +817,7 @@ function SocialProofSection() {
 const plans = [
   {
     name: "무료 체험",
-    desc: "리더십 훈련 첫 경험",
+    desc: "오늘 필요한 대화를 먼저 연습해보세요",
     highlight: false,
     priceOptions: [{ price: "₩0", period: "", href: SERVICE_URL, cta: "현재 플랜", disabled: true }],
     features: [
@@ -716,40 +829,29 @@ const plans = [
   },
   {
     name: "프로",
-    desc: "본격 리더십 성장",
+    desc: "반복 연습이 필요한 팀장을 위한 대표 플랜",
     highlight: true,
     priceOptions: [
       { price: "₩8,900", period: "/ 10일", href: SERVICE_URL, cta: "결제하기 →", disabled: false },
-      { price: "₩13,500", period: "/ 20일", href: SERVICE_URL, cta: "결제하기 →", disabled: false },
     ],
     features: [
       "20개 시나리오 · 시나리오당 3회",
       "풀 피드백 리포트",
-      "이전 기록 보관 및 비교",
       "실시간 즉시 코칭",
-      "음성 시뮬레이션",
-    ],
-  },
-  {
-    name: "울트라",
-    desc: "리더십 마스터",
-    highlight: false,
-    priceOptions: [
-      { price: "₩17,900", period: "/ 15일", href: SERVICE_URL, cta: "결제하기 →", disabled: false },
-      { price: "₩24,500", period: "/ 25일", href: SERVICE_URL, cta: "결제하기 →", disabled: false },
-    ],
-    features: [
-      "40개 전체 시나리오 · 시나리오당 5회",
-      "풀 피드백 리포트",
-      "타인과의 결과 비교 리포트",
-      "이전 기록 비교",
-      "HR 대시보드",
-      "커스텀 시나리오",
+      "이전 기록 보관 및 비교",
     ],
   },
 ];
 
-function PricingSection() {
+function PricingSection({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
+  const trackedPlans = plans.map((plan) => ({
+    ...plan,
+    priceOptions: plan.priceOptions.map((option, index) => ({
+      ...option,
+      href: option.disabled ? option.href : buildTrackedServiceUrl(`pricing-${plan.name}-${index + 1}`),
+    })),
+  }));
+
   return (
     <section id="pricing" className="py-20 md:py-28 bg-gradient-to-b from-slate-50/80 to-white">
       <motion.div
@@ -759,15 +861,27 @@ function PricingSection() {
         viewport={{ once: true, margin: "-80px" }}
         variants={stagger}
       >
-        <motion.div variants={fadeUp} className="text-center mb-14">
-          <span className="text-sm font-medium text-primary mb-2 block">요금제</span>
+        <motion.div variants={fadeUp} className="text-center mb-10">
+          <span className="text-sm font-medium text-primary mb-2 block">업그레이드는 나중에</span>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
-            당신에게 맞는 플랜을 선택하세요
+            지금은 무료 체험만 확인해도 충분합니다
           </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            이 페이지의 목적은 가격 비교가 아니라, 어떤 메시지가 체험 시작을 가장 잘 만드는지 확인하는 것입니다.
+          </p>
         </motion.div>
 
-        <motion.div variants={stagger} className="grid md:grid-cols-3 gap-6 items-start">
-          {plans.map((p) => (
+        <motion.div variants={fadeUp} className="max-w-3xl mx-auto mb-8 rounded-2xl border border-primary/15 bg-primary/5 p-6 text-left">
+          <p className="text-sm font-semibold text-primary mb-2">먼저 여기까지만 보면 됩니다</p>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li>• 무료 시나리오 3개 체험</li>
+            <li>• 가입 없이 바로 시작</li>
+            <li>• 체험 후 필요할 때만 프로 플랜 검토</li>
+          </ul>
+        </motion.div>
+
+        <motion.div variants={stagger} className="grid md:grid-cols-2 gap-6 items-start max-w-4xl mx-auto justify-center">
+          {trackedPlans.map((p) => (
             <motion.div
               key={p.name}
               variants={fadeUp}
@@ -782,7 +896,7 @@ function PricingSection() {
                   가장 인기
                 </span>
               )}
-              <h3 className={`text-lg font-bold mb-1 ${p.highlight ? "text-primary" : p.name === "울트라" ? "text-primary" : "text-foreground"}`}>{p.name}</h3>
+              <h3 className={`text-lg font-bold mb-1 ${p.highlight ? "text-primary" : "text-foreground"}`}>{p.name}</h3>
               <p className="text-sm text-muted-foreground mb-5">{p.desc}</p>
 
               {/* Price options */}
@@ -803,6 +917,7 @@ function PricingSection() {
                         href={opt.href}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => trackCtaClick(`pricing-${p.name}-${i + 1}`, SERVICE_URL)}
                         className="flex items-center justify-between rounded-xl border border-border px-4 py-3 hover:border-primary/40 hover:bg-primary/5 transition-colors group"
                       >
                         <div className="flex items-baseline gap-1.5">
@@ -846,16 +961,8 @@ const faqs = [
     a: "보통 한 시나리오당 15~30분 정도 소요됩니다. 짧은 시간에 핵심적인 면담 연습을 할 수 있도록 설계되어 있습니다.",
   },
   {
-    q: "우리 회사 상황에 맞는 시나리오도 만들 수 있나요?",
-    a: "Pro 이상 플랜에서 커스텀 시나리오를 생성할 수 있습니다. Enterprise 플랜에서는 조직 맞춤형 시나리오를 함께 설계해드립니다.",
-  },
-  {
     q: "대화 데이터는 안전한가요?",
     a: "모든 대화 데이터는 암호화되어 저장되며, 사용자 본인 외에는 접근할 수 없습니다. 데이터는 리포트 생성 목적으로만 활용됩니다.",
-  },
-  {
-    q: "팀 단위로 사용할 수 있나요?",
-    a: "Enterprise 플랜에서 팀 관리 대시보드를 제공합니다. 팀원들의 학습 현황을 확인하고, 공통 과제를 파악할 수 있습니다.",
   },
 ];
 
@@ -914,7 +1021,7 @@ function FAQSection() {
 }
 
 /* ─── Final CTA ─── */
-function FinalCTA() {
+function FinalCTA({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
   return (
     <section className="py-20 md:py-28">
       <motion.div
@@ -946,9 +1053,10 @@ function FinalCTA() {
               3개 시나리오를 무료로 체험할 수 있습니다. 가입 없이 바로 시작해보세요.
             </p>
             <a
-              href={SERVICE_URL}
+              href={buildTrackedServiceUrl("final-cta")}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackCtaClick("final-cta", SERVICE_URL)}
               className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-sm font-semibold text-primary hover:bg-white/90 transition-colors shadow-lg"
             >
               무료 체험 시작
@@ -962,7 +1070,7 @@ function FinalCTA() {
 }
 
 /* ─── Footer ─── */
-function Footer() {
+function Footer({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
   return (
     <footer className="border-t border-border py-10">
       <div className="mx-auto max-w-6xl px-5 flex flex-col md:flex-row items-center justify-between gap-4">
@@ -973,7 +1081,13 @@ function Footer() {
           Leader&apos;s High
         </div>
         <div className="flex items-center gap-6 text-xs text-muted-foreground">
-          <a href={SERVICE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
+          <a
+            href={buildTrackedServiceUrl("footer-service-link")}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackCtaClick("footer-service-link", SERVICE_URL)}
+            className="hover:text-foreground transition-colors"
+          >
             서비스 바로가기
           </a>
           <span>|</span>
@@ -986,20 +1100,49 @@ function Footer() {
 
 /* ─── Main Export ─── */
 export default function LandingContent() {
+  const attribution = useMemo(() => {
+    if (typeof window === "undefined") {
+      return readAttribution("");
+    }
+
+    return readAttribution(window.location.search);
+  }, []);
+
+  const variant = attribution.lp;
+
+  useEffect(() => {
+    trackEvent("landing_variant_view", {
+      variant,
+      ...attribution,
+      path: typeof window !== "undefined" ? window.location.pathname : "/",
+    });
+  }, [attribution, variant]);
+
+  const buildTrackedServiceUrl = (placement: string) => buildServiceUrl(attribution, placement);
+
+  const trackCtaClick = (placement: string, target: string) => {
+    trackEvent("cta_click", {
+      variant,
+      placement,
+      target,
+      ...attribution,
+    });
+  };
+
   return (
     <div className="bg-background text-foreground min-h-screen" style={{ scrollBehavior: "smooth" }}>
-      <Nav />
-      <Hero />
-      <ProblemSection />
+      <Nav buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
+      <Hero variant={variant} buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
+      <ProblemSection variant={variant} />
       <SolutionSection />
       <HowItWorksSection />
       <FeaturesSection />
-      <DemoPreview />
-      <SocialProofSection />
-      <PricingSection />
+      <DemoPreview buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
+      <EvidenceSection />
+      <PricingSection buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
       <FAQSection />
-      <FinalCTA />
-      <Footer />
+      <FinalCTA buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
+      <Footer buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
     </div>
   );
 }
