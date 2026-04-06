@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { supabase } from "./supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 
 const SERVICE_URL = "https://leader-s-high.vercel.app/#/onboarding";
+const SESSION_ID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 type LandingVariant = "practice" | "diagnosis" | "new-manager";
 
@@ -143,6 +145,16 @@ function trackEvent(name: string, payload: Record<string, unknown>) {
 
   window.dispatchEvent(new CustomEvent("leadershigh:tracking", { detail: { name, payload } }));
   console.info(`[tracking] ${name}`, payload);
+
+  supabase
+    .from("analytics_events")
+    .insert({
+      user_id: null,
+      session_id: SESSION_ID,
+      event_name: name,
+      properties: payload,
+    })
+    .then(() => {}, () => {});
 }
 
 /* ─── Animation variants ─── */
