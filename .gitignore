@@ -24,3 +24,8 @@ npm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Code / bkit 로컬 상태
+.bkit/
+.omc/
+.claude/

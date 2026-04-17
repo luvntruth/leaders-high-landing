@@ -21,7 +21,9 @@ import {
   LifeBuoy,
 } from "lucide-react";
 
-const SERVICE_URL = "https://leader-s-high.vercel.app/#/onboarding";
+const SERVICE_URL =
+  process.env.NEXT_PUBLIC_SERVICE_URL ||
+  "https://leader-s-high.vercel.app/#/onboarding";
 
 type LandingVariant = "practice" | "diagnosis" | "new-manager";
 
@@ -142,6 +144,18 @@ function trackEvent(name: string, payload: Record<string, unknown>) {
   }
 
   window.dispatchEvent(new CustomEvent("leadershigh:tracking", { detail: { name, payload } }));
+
+  // Meta Pixel — 설치된 경우에만 custom event 발사.
+  // Pixel base 스크립트는 src/app/layout.tsx 에서 NEXT_PUBLIC_META_PIXEL_ID 설정 시 주입됨.
+  const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
+  if (typeof fbq === "function") {
+    try {
+      fbq("trackCustom", name, payload);
+    } catch {
+      /* no-op */
+    }
+  }
+
   console.info(`[tracking] ${name}`, payload);
 }
 
