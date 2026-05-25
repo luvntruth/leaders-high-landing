@@ -368,7 +368,7 @@ function Hero({ variant, buildTrackedServiceUrl, trackCtaClick }: { variant: Lan
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">김철수</p>
-                    <p className="text-[11px] text-muted-foreground">지각 면담 시나리오 · B등급</p>
+                    <p className="text-[11px] text-muted-foreground">성과 좋은 만성 지각자 · B등급</p>
                   </div>
                   <span className="ml-auto text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">진행 중</span>
                 </div>
@@ -485,6 +485,10 @@ function ProblemSection({ variant }: { variant: LandingVariant }) {
           <p className="text-muted-foreground max-w-xl mx-auto">
             {content.problemDescription}
           </p>
+          <p className="text-xs text-muted-foreground/70 max-w-xl mx-auto mt-3 leading-relaxed">
+            무료 체험에서는 이 중 3개 시나리오(만성 지각자 · 워라밸 사수 · 권위 무시)를 먼저 만나고,
+            나머지는 Pro / Ultra 에서 확장됩니다.
+          </p>
         </motion.div>
 
         <motion.div variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -510,7 +514,7 @@ const solutions = [
   {
     icon: Users,
     title: "실제 팀원처럼 반응하는 AI",
-    desc: "40가지 성격과 상황을 가진 AI 팀원이 한국 직장 문화의 뉘앙스까지 반영해 반응합니다.",
+    desc: "다양한 성격과 상황을 가진 AI 팀원이 한국 직장 문화의 뉘앙스까지 반영해 반응합니다. 무료 체험은 3개, 확장 시 최대 40개까지 만날 수 있습니다.",
     color: "bg-primary/10 text-primary",
   },
   {
@@ -699,42 +703,62 @@ function HowItWorksSection() {
 }
 
 /* ─── Features ─── */
-const features = [
+type FeatureScope = "free" | "pro" | "soon";
+
+const SCOPE_BADGE: Record<FeatureScope, { label: string; className: string }> = {
+  free: { label: "무료 체험", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  pro: { label: "Pro 이상", className: "bg-amber-50 text-amber-700 border-amber-200" },
+  soon: { label: "준비 중", className: "bg-slate-100 text-slate-600 border-slate-200" },
+};
+
+const features: Array<{
+  icon: typeof Brain;
+  title: string;
+  desc: string;
+  color: string;
+  scope: FeatureScope;
+}> = [
   {
     icon: Brain,
     title: "실전 대화 진단",
     desc: "시뮬레이션을 통해 경청, 공감, 질문, 피드백 중 어디서 대화가 흔들리는지 바로 확인합니다.",
     color: "text-primary bg-primary/10",
+    scope: "free",
   },
   {
     icon: Zap,
     title: "즉시 코칭",
     desc: "내가 방금 한 말이 신뢰도에 어떤 영향을 줬는지 바로 피드백받고 다음 대응을 조정합니다.",
     color: "text-emerald-600 bg-emerald-50",
+    scope: "pro",
   },
   {
     icon: LifeBuoy,
     title: "막히는 순간 SOS",
     desc: "어려운 순간에는 바로 쓸 수 있는 발언 예시와 대응 전략을 확인할 수 있습니다.",
     color: "text-rose-500 bg-rose-50",
+    scope: "pro",
   },
   {
     icon: BookOpen,
     title: "이론 기반 미션 가이드",
     desc: "SBI 피드백 모델, 자기결정성 이론 등 경영학·심리학 이론에 근거한 정밀 미션을 진행합니다.",
     color: "text-indigo-600 bg-indigo-50",
+    scope: "free",
   },
   {
     icon: FlaskConical,
     title: "커스텀 랩",
     desc: "오늘 면담할 그 팀원, 그 상황을 직접 입력해 나만의 시나리오로 연습할 수 있습니다.",
     color: "text-violet-600 bg-violet-50",
+    scope: "soon",
   },
   {
     icon: BarChart3,
     title: "정밀 진단 리포트",
     desc: "강점·개선점·모범 답안까지 담은 정밀 진단 리포트로, 다음 면담에서 바로 쓸 표현을 가져갑니다.",
     color: "text-primary bg-primary/10",
+    scope: "pro",
   },
 ];
 
@@ -753,22 +777,34 @@ function FeaturesSection() {
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
             대화가 달라지도록 돕는 핵심 기능
           </h2>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            무료 체험에서는 3개 시나리오 · 12턴 대화 · 간략 리포트를 먼저 경험합니다.
+            반복 훈련 · 즉시 코칭 · 풀 리포트는 Pro/Ultra 에서 확장됩니다.
+          </p>
         </motion.div>
 
         <motion.div variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
-          {features.map((f) => (
-            <motion.div
-              key={f.title}
-              variants={fadeUp}
-              className="rounded-2xl border border-border bg-white p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-            >
-              <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${f.color} mb-4`}>
-                <f.icon className="h-5 w-5" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-1.5">{f.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-            </motion.div>
-          ))}
+          {features.map((f) => {
+            const badge = SCOPE_BADGE[f.scope];
+            return (
+              <motion.div
+                key={f.title}
+                variants={fadeUp}
+                className="relative rounded-2xl border border-border bg-white p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+              >
+                <span
+                  className={`absolute top-3 right-3 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${badge.className}`}
+                >
+                  {badge.label}
+                </span>
+                <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${f.color} mb-4`}>
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-1.5 pr-16">{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              </motion.div>
+            );
+          })}
         </motion.div>
       </motion.div>
     </section>
@@ -819,9 +855,9 @@ function DemoPreview({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext,
                 <div className="space-y-3">
                   <p className="text-cyan-400 text-xs font-medium mb-3 tracking-wider uppercase">Quest Board</p>
                   {[
-                    { emoji: "😒", name: "지각하는 팀원 피드백", diff: "B등급 · 쉬움", color: "border-emerald-500/30" },
-                    { emoji: "😤", name: "경계 명확화 면담", diff: "A등급 · 보통", color: "border-amber-500/30" },
-                    { emoji: "💥", name: "팀 내 갈등 조정", diff: "S등급 · 도전", color: "border-rose-500/30" },
+                    { emoji: "😒", name: "성과 좋은 만성 지각자", diff: "B등급 · 쉬움", color: "border-emerald-500/30" },
+                    { emoji: "😤", name: "이기적인 워라밸 사수", diff: "A등급 · 보통", color: "border-amber-500/30" },
+                    { emoji: "💢", name: "연상 팀원의 권위 무시", diff: "S등급 · 도전", color: "border-rose-500/30" },
                   ].map((s) => (
                     <div key={s.name} className={`rounded-xl border ${s.color} bg-white/5 backdrop-blur px-4 py-3 flex items-center gap-3`}>
                       <span className="text-2xl">{s.emoji}</span>
@@ -848,8 +884,8 @@ function DemoPreview({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext,
                       <span className="text-amber-400 font-bold">78%</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">완료 퀘스트</span>
-                      <span className="text-emerald-400 font-bold">12/40</span>
+                      <span className="text-gray-300">무료 체험</span>
+                      <span className="text-emerald-400 font-bold">3개 시나리오</span>
                     </div>
                   </div>
                 </div>
@@ -879,8 +915,8 @@ function DemoPreview({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext,
 const evidencePoints = [
   {
     icon: Target,
-    title: "40+ 실전 시나리오",
-    desc: "저성과자 피드백, 갈등 조율, 퇴사 방지 대화처럼 실제 팀장이 자주 마주치는 상황을 연습합니다.",
+    title: "무료 3개로 시작 → 최대 40개로 확장",
+    desc: "무료 체험 3개로 먼저 감을 잡고, 필요하면 Pro 20개 / Ultra 40개로 반복 훈련 범위를 넓힙니다.",
   },
   {
     icon: Zap,
@@ -982,8 +1018,8 @@ const faqs = [
     a: "보통 한 시나리오당 15~30분 정도 소요됩니다. 무료 체험은 시나리오당 12턴으로 구성돼 짧은 시간에 핵심적인 면담 연습을 할 수 있도록 설계되어 있습니다.",
   },
   {
-    q: "대화 데이터는 안전한가요?",
-    a: "모든 대화 데이터는 암호화되어 저장되며, 사용자 본인 외에는 접근할 수 없습니다. 데이터는 리포트 생성 목적으로만 활용됩니다.",
+    q: "대화 데이터는 어떻게 처리되나요?",
+    a: "대화 데이터는 리포트 생성과 서비스 운영 목적에 맞춰 필요한 범위에서 처리됩니다. 실제 인사평가 정보, 민감한 개인정보, 제3자의 식별 가능한 정보는 입력하지 않는 것을 권장합니다.",
   },
 ];
 
@@ -1125,17 +1161,17 @@ export default function LandingContent() {
 
   const variant = attribution.lp;
 
+  // Mount 시 1회만: URL 기반 attribution 채움 + landing_variant_view 단일 발사.
+  // attribution을 한 번에 final 값으로 갱신해 변경 의존 useEffect 재발사를 회피.
   useEffect(() => {
-    setAttribution(readAttribution(window.location.search));
-  }, []);
-
-  useEffect(() => {
+    const next = readAttribution(window.location.search);
+    setAttribution(next);
     trackEvent("landing_variant_view", {
-      variant,
-      ...attribution,
-      path: typeof window !== "undefined" ? window.location.pathname : "/",
+      variant: next.lp,
+      ...next,
+      path: window.location.pathname,
     });
-  }, [attribution, variant]);
+  }, []);
 
   const buildTrackedServiceUrl = (placement: string) => buildServiceUrl(attribution, placement);
 
