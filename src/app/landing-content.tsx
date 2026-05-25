@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -12,7 +12,6 @@ import {
   BarChart3,
   ChevronDown,
   Check,
-  X,
   Menu,
   Brain,
   Users,
@@ -23,7 +22,7 @@ import {
 
 const SERVICE_URL =
   process.env.NEXT_PUBLIC_SERVICE_URL ||
-  "https://leader-s-high.vercel.app/#/onboarding";
+  "https://app.letmefree.xyz/#/onboarding";
 
 type LandingVariant = "practice" | "diagnosis" | "new-manager";
 
@@ -168,11 +167,6 @@ const fadeUp = {
 const stagger = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.15 } },
-};
-
-const staggerFast = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
 };
 
 /* ─── Nav ─── */
@@ -1114,15 +1108,13 @@ function Footer({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "bui
 
 /* ─── Main Export ─── */
 export default function LandingContent() {
-  const attribution = useMemo(() => {
-    if (typeof window === "undefined") {
-      return readAttribution("");
-    }
-
-    return readAttribution(window.location.search);
-  }, []);
+  const [attribution, setAttribution] = useState<AttributionParams>(() => readAttribution(""));
 
   const variant = attribution.lp;
+
+  useEffect(() => {
+    setAttribution(readAttribution(window.location.search));
+  }, []);
 
   useEffect(() => {
     trackEvent("landing_variant_view", {
