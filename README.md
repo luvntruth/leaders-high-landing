@@ -1,4 +1,4 @@
-# Leader's High — Landing Page
+# 렛미프리(Letmefree) — Landing Page
 
 Meta 광고 A/B 테스트용 랜딩 페이지. Next.js 16 App Router + Tailwind 4 + Framer Motion.
 
@@ -22,14 +22,14 @@ URL 쿼리 `?lp=` 로 Hero/Problem 카피가 분기됩니다.
 https://leaders-high-landing.vercel.app/?lp=<VARIANT>&utm_source=meta&utm_medium=cpc&utm_campaign=<CAMPAIGN_ID>&utm_content=<AD_NAME>
 ```
 
-CTA 클릭 시 `lp`, `cta`, `utm_*` 가 메인 앱(`leader-s-high.vercel.app`) 으로 전달되어 퍼널 분석에 사용됩니다.
+CTA 클릭 시 `lp`, `cta`, `utm_*` 가 메인 앱(`app.letmefree.xyz`) 으로 전달되어 퍼널 분석에 사용됩니다.
 
 ## 환경변수
 
 `.env.example` 복사 → `.env.local` 또는 Vercel Env.
 
 - `NEXT_PUBLIC_META_PIXEL_ID` — Meta Pixel ID (설정 시 픽셀 자동 설치)
-- `NEXT_PUBLIC_SERVICE_URL` — 메인 서비스 URL (기본: leader-s-high.vercel.app)
+- `NEXT_PUBLIC_SERVICE_URL` — 메인 서비스 URL (기본: app.letmefree.xyz)
 
 ## 로컬 개발
 

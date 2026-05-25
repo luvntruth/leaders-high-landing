@@ -11,13 +11,15 @@ import {
   Zap,
   BarChart3,
   ChevronDown,
-  Check,
   Menu,
   Brain,
   Users,
   FileText,
   Clock,
   LifeBuoy,
+  BookOpen,
+  FlaskConical,
+  Activity,
 } from "lucide-react";
 
 const SERVICE_URL =
@@ -44,8 +46,8 @@ const VARIANT_CONFIG: Record<
     badge: "AI 리더십 코칭 시뮬레이터",
     headline: ["팀원과의 어려운 대화,", "연습하면 달라집니다"],
     description: [
-      "AI 팀원과 40가지 실전 시나리오를 연습하고,",
-      "실시간 코칭으로 리더십 스킬을 키우세요.",
+      "AI 팀원의 신뢰도와 감정 변화를 실시간으로 보며,",
+      "실전 면담을 안전하게 리허설하세요.",
     ],
     primaryCta: "무료 체험 시작",
     secondaryCta: "어떻게 작동하나요?",
@@ -58,8 +60,8 @@ const VARIANT_CONFIG: Record<
     badge: "AI 리더십 진단 시뮬레이터",
     headline: ["그 대화가 왜 꼬였는지,", "AI와 다시 진단해보세요"],
     description: [
-      "이미 지나간 어려운 면담도 다시 복기하고,",
-      "어디서 관계와 신뢰가 흔들렸는지 바로 확인하세요.",
+      "이미 지나간 어려운 면담을 재현하고,",
+      "어디서 신뢰가 흔들렸는지 신뢰도 변화로 확인하세요.",
     ],
     primaryCta: "문제 대화 진단하기",
     secondaryCta: "진단 방식 보기",
@@ -144,8 +146,6 @@ function trackEvent(name: string, payload: Record<string, unknown>) {
 
   window.dispatchEvent(new CustomEvent("leadershigh:tracking", { detail: { name, payload } }));
 
-  // Meta Pixel — 설치된 경우에만 custom event 발사.
-  // Pixel base 스크립트는 src/app/layout.tsx 에서 NEXT_PUBLIC_META_PIXEL_ID 설정 시 주입됨.
   const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
   if (typeof fbq === "function") {
     try {
@@ -183,7 +183,6 @@ function Nav({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildT
   const links = [
     { label: "기능", href: "#features" },
     { label: "작동방식", href: "#how" },
-    { label: "요금", href: "#pricing" },
     { label: "FAQ", href: "#faq" },
   ];
 
@@ -200,7 +199,7 @@ function Nav({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildT
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm">
             L
           </span>
-          Leader&apos;s High
+          Letmefree
         </a>
 
         {/* Desktop links */}
@@ -354,7 +353,7 @@ function Hero({ variant, buildTrackedServiceUrl, trackCtaClick }: { variant: Lan
             </motion.p>
           </div>
 
-          {/* Visual — Chat UI Mockup */}
+          {/* Visual — Chat UI Mockup with Trust Gauge */}
           <motion.div
             variants={fadeUp}
             className="flex-1 w-full max-w-md lg:max-w-lg"
@@ -365,34 +364,60 @@ function Hero({ variant, buildTrackedServiceUrl, trackCtaClick }: { variant: Lan
                 {/* Header */}
                 <div className="bg-gradient-to-r from-slate-50 to-gray-50 px-5 py-3.5 border-b border-border flex items-center gap-3">
                   <div className="h-9 w-9 rounded-full bg-amber-100 flex items-center justify-center text-sm">
-                    😤
+                    😒
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">김재현 대리</p>
-                    <p className="text-[11px] text-muted-foreground">성과 불만 면담 시나리오</p>
+                    <p className="text-sm font-semibold text-foreground">김철수</p>
+                    <p className="text-[11px] text-muted-foreground">지각 면담 시나리오 · B등급</p>
                   </div>
                   <span className="ml-auto text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">진행 중</span>
                 </div>
+
+                {/* Trust gauge */}
+                <div className="px-5 pt-4 pb-2 border-b border-border/60">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">신뢰도</span>
+                    <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                      <motion.div
+                        className="h-full rounded-full"
+                        initial={{ width: "32%", backgroundColor: "#ef4444" }}
+                        animate={{ width: "65%", backgroundColor: "#10b981" }}
+                        transition={{ duration: 1.6, delay: 0.8, ease: "easeOut" }}
+                      />
+                    </div>
+                    <span className="text-[11px] font-bold text-emerald-600 tabular-nums">65</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/80">경계 → 점진적 수용으로 이동 중</p>
+                </div>
+
                 {/* Messages */}
                 <div className="p-4 space-y-3 min-h-[200px]">
                   <div className="flex gap-2.5">
                     <div className="h-7 w-7 rounded-full bg-amber-100 flex items-center justify-center text-xs shrink-0 mt-0.5">
-                      😤
+                      😒
                     </div>
                     <div className="rounded-xl rounded-tl-sm bg-gray-100 px-3.5 py-2.5 text-sm text-foreground max-w-[85%]">
-                      팀장님, 솔직히 이번 평가 결과 납득이 안 됩니다. 저만큼 야근한 사람이 없는데요.
+                      ...네, 뭐 팀장님이 그렇게 생각하시면 할 말은 없지만요.
                     </div>
                   </div>
                   <div className="flex gap-2.5 justify-end">
                     <div className="rounded-xl rounded-tr-sm bg-primary/10 px-3.5 py-2.5 text-sm text-foreground max-w-[85%]">
-                      재현 씨의 노력은 충분히 알고 있어요. 다만 이번 평가 기준에 대해 함께 이야기해볼까요?
+                      철수씨 입장에서 어떤 점이 가장 힘들었는지 좀 더 이야기해줄 수 있어요?
+                    </div>
+                  </div>
+                  <div className="flex gap-2.5">
+                    <div className="h-7 w-7 rounded-full bg-amber-100 flex items-center justify-center text-xs shrink-0 mt-0.5">
+                      🙂
+                    </div>
+                    <div className="rounded-xl rounded-tl-sm bg-gray-100 px-3.5 py-2.5 text-sm text-foreground max-w-[85%]">
+                      ...사실 마감 때문에 새벽까지 일한 적이 많은데, 지각 얘기만 나오면 좀 억울하긴 합니다.
                     </div>
                   </div>
                   {/* Coaching badge */}
                   <div className="flex justify-center">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] text-emerald-700 font-medium">
                       <Zap className="h-3 w-3" />
-                      즉시 코칭: 감정 인정 후 기준 전환 — 좋은 접근입니다!
+                      즉시 코칭: 감정 인정 후 맥락 질문 — 신뢰도 +17
                     </span>
                   </div>
                 </div>
@@ -411,15 +436,15 @@ function Hero({ variant, buildTrackedServiceUrl, trackCtaClick }: { variant: Lan
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-[11px]">
-                    <span className="text-emerald-600">GOOD 포인트</span>
+                    <span className="text-emerald-600">강점</span>
                     <span className="font-medium">3건</span>
                   </div>
                   <div className="flex justify-between text-[11px]">
-                    <span className="text-rose-500">개선 포인트</span>
+                    <span className="text-rose-500">개선점</span>
                     <span className="font-medium">2건</span>
                   </div>
                   <div className="flex justify-between text-[11px]">
-                    <span className="text-primary">골든 스크립트</span>
+                    <span className="text-primary">모범 답안</span>
                     <span className="font-medium">4건</span>
                   </div>
                 </div>
@@ -485,13 +510,13 @@ const solutions = [
   {
     icon: Users,
     title: "실제 팀원처럼 반응하는 AI",
-    desc: "40가지 성격과 상황을 가진 AI 팀원이 실제 면담처럼 반응합니다.",
+    desc: "40가지 성격과 상황을 가진 AI 팀원이 한국 직장 문화의 뉘앙스까지 반영해 반응합니다.",
     color: "bg-primary/10 text-primary",
   },
   {
     icon: Zap,
     title: "대화 중 실시간 피드백",
-    desc: "발언 하나하나에 즉시 코칭을 받고, SOS로 이상적인 응답을 배웁니다.",
+    desc: "발언 하나하나에 즉시 코칭을 받고, SOS로 막히는 순간의 모범 발화를 확인합니다.",
     color: "bg-emerald-50 text-emerald-600",
   },
   {
@@ -539,31 +564,103 @@ function SolutionSection() {
   );
 }
 
+/* ─── Emotion Journey (NEW) ─── */
+const emotionStages = [
+  { range: "0-20", label: "강한 반발", emoji: "😡", desc: "공격적·회피적 반응", bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-600" },
+  { range: "21-40", label: "경계·방어", emoji: "😒", desc: "짧고 방어적인 답변", bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-600" },
+  { range: "41-55", label: "유보적 관망", emoji: "🤔", desc: "조심스러운 자기 표현", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-600" },
+  { range: "56-70", label: "점진적 수용", emoji: "🙂", desc: "어려움을 조금씩 공유", bg: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-700" },
+  { range: "71-85", label: "열린 대화", emoji: "😊", desc: "솔직한 속마음 공개", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-600" },
+  { range: "86-100", label: "설득·합의", emoji: "🤝", desc: "스스로 개선안 제안", bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-600" },
+];
+
+function EmotionJourneySection() {
+  return (
+    <section className="py-20 md:py-28 bg-gradient-to-b from-slate-50/80 to-white">
+      <motion.div
+        className="mx-auto max-w-6xl px-5"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        variants={stagger}
+      >
+        <motion.div variants={fadeUp} className="text-center mb-12">
+          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary mb-2">
+            <Activity className="h-3.5 w-3.5" />
+            차별화 코어
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
+            팀원의 마음이 어디서 움직이는지, 신뢰도로 확인하세요
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            렛미프리는 AI 팀원의 신뢰도(0~100)와 감정 상태를 실시간으로 분석합니다.
+            어떤 말이 마음을 닫게 했는지, 어떤 말이 마음을 열게 했는지 즉시 보입니다.
+          </p>
+        </motion.div>
+
+        {/* Stages strip */}
+        <motion.div variants={stagger} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
+          {emotionStages.map((s) => (
+            <motion.div
+              key={s.range}
+              variants={fadeUp}
+              className={`rounded-xl border ${s.border} ${s.bg} p-4 text-center`}
+            >
+              <span className="text-2xl mb-1.5 block">{s.emoji}</span>
+              <div className={`text-[10px] font-bold ${s.text} mb-1 tabular-nums`}>{s.range}</div>
+              <h4 className="text-sm font-semibold text-foreground mb-1">{s.label}</h4>
+              <p className="text-[11px] text-muted-foreground leading-snug">{s.desc}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Visual rail */}
+        <motion.div variants={fadeUp} className="max-w-3xl mx-auto">
+          <div className="relative h-3 rounded-full bg-gradient-to-r from-rose-300 via-amber-300 via-yellow-200 via-emerald-300 to-teal-400 overflow-hidden" />
+          <div className="flex justify-between mt-2 px-1 text-[10px] font-medium text-muted-foreground tabular-nums">
+            <span>0</span>
+            <span>20</span>
+            <span>40</span>
+            <span>60</span>
+            <span>80</span>
+            <span>100</span>
+          </div>
+          <p className="mt-5 text-center text-sm text-muted-foreground">
+            발언 하나하나가 신뢰도를 움직입니다. 어디서 신뢰가 흔들렸는지 곧바로 보이고,
+            <br className="hidden sm:block" />
+            다음 한 마디를 어떻게 바꿔야 할지도 함께 제안받습니다.
+          </p>
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+}
+
 /* ─── How It Works ─── */
 const steps = [
   {
     num: "01",
     icon: Target,
     title: "시나리오 선택",
-    desc: "난이도 별로 제공되는 실전 면담 시나리오를\n순서대로 진행합니다.",
+    desc: "난이도 별로 제공되는 실전 면담 시나리오를\n선택하거나, 커스텀 랩으로 내 상황을 직접 입력합니다.",
   },
   {
     num: "02",
     icon: MessageCircle,
     title: "AI 팀원과 대화",
-    desc: "실제 면담처럼 대화하면서\n즉시 코칭과 SOS 도움을 받으세요.",
+    desc: "실제 면담처럼 대화하면서 신뢰도 변화를 보고\n즉시 코칭과 SOS 도움을 받으세요.",
   },
   {
     num: "03",
     icon: FileText,
-    title: "리포트 확인",
-    desc: "GOOD/BAD 포인트, 골든 스크립트,\n액션 아이템이 담긴 리포트를 확인하세요.",
+    title: "정밀 진단 리포트",
+    desc: "강점·개선점·모범 답안과 액션 아이템이 담긴\n진단 리포트로 다음 면담을 준비하세요.",
   },
 ];
 
 function HowItWorksSection() {
   return (
-    <section id="how" className="py-20 md:py-28 bg-gradient-to-b from-slate-50/80 to-white">
+    <section id="how" className="py-20 md:py-28">
       <motion.div
         className="mx-auto max-w-6xl px-5"
         initial="hidden"
@@ -612,7 +709,7 @@ const features = [
   {
     icon: Zap,
     title: "즉시 코칭",
-    desc: "내가 방금 한 말이 어떤 영향을 주는지 바로 피드백받고 다음 대응을 조정합니다.",
+    desc: "내가 방금 한 말이 신뢰도에 어떤 영향을 줬는지 바로 피드백받고 다음 대응을 조정합니다.",
     color: "text-emerald-600 bg-emerald-50",
   },
   {
@@ -622,16 +719,28 @@ const features = [
     color: "text-rose-500 bg-rose-50",
   },
   {
+    icon: BookOpen,
+    title: "이론 기반 미션 가이드",
+    desc: "SBI 피드백 모델, 자기결정성 이론 등 경영학·심리학 이론에 근거한 정밀 미션을 진행합니다.",
+    color: "text-indigo-600 bg-indigo-50",
+  },
+  {
+    icon: FlaskConical,
+    title: "커스텀 랩",
+    desc: "오늘 면담할 그 팀원, 그 상황을 직접 입력해 나만의 시나리오로 연습할 수 있습니다.",
+    color: "text-violet-600 bg-violet-50",
+  },
+  {
     icon: BarChart3,
-    title: "대화 리포트",
-    desc: "GOOD/BAD 포인트와 다음 면담에서 바로 쓸 개선 포인트를 정리해줍니다.",
+    title: "정밀 진단 리포트",
+    desc: "강점·개선점·모범 답안까지 담은 정밀 진단 리포트로, 다음 면담에서 바로 쓸 표현을 가져갑니다.",
     color: "text-primary bg-primary/10",
   },
 ];
 
 function FeaturesSection() {
   return (
-    <section id="features" className="py-20 md:py-28">
+    <section id="features" className="py-20 md:py-28 bg-gradient-to-b from-white to-slate-50/80">
       <motion.div
         className="mx-auto max-w-6xl px-5"
         initial="hidden"
@@ -646,7 +755,7 @@ function FeaturesSection() {
           </h2>
         </motion.div>
 
-        <motion.div variants={stagger} className="grid sm:grid-cols-2 gap-5 max-w-4xl mx-auto">
+        <motion.div variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
           {features.map((f) => (
             <motion.div
               key={f.title}
@@ -669,7 +778,7 @@ function FeaturesSection() {
 /* ─── Demo Preview ─── */
 function DemoPreview({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
   return (
-    <section className="py-20 md:py-28 bg-gradient-to-b from-white to-slate-50/80">
+    <section className="py-20 md:py-28">
       <motion.div
         className="mx-auto max-w-6xl px-5"
         initial="hidden"
@@ -699,7 +808,7 @@ function DemoPreview({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext,
               </div>
               <div className="flex-1 mx-3">
                 <div className="bg-white rounded-md border border-border px-3 py-1 text-xs text-muted-foreground text-center">
-                  leader-s-high.vercel.app
+                  app.letmefree.xyz
                 </div>
               </div>
             </div>
@@ -710,9 +819,9 @@ function DemoPreview({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext,
                 <div className="space-y-3">
                   <p className="text-cyan-400 text-xs font-medium mb-3 tracking-wider uppercase">Quest Board</p>
                   {[
-                    { emoji: "😤", name: "성과 불만 면담", diff: "중급", color: "border-amber-500/30" },
-                    { emoji: "🚪", name: "퇴사 방지 대화", diff: "고급", color: "border-rose-500/30" },
-                    { emoji: "😶", name: "침묵하는 팀원", diff: "초급", color: "border-emerald-500/30" },
+                    { emoji: "😒", name: "지각하는 팀원 피드백", diff: "B등급 · 쉬움", color: "border-emerald-500/30" },
+                    { emoji: "😤", name: "경계 명확화 면담", diff: "A등급 · 보통", color: "border-amber-500/30" },
+                    { emoji: "💥", name: "팀 내 갈등 조정", diff: "S등급 · 도전", color: "border-rose-500/30" },
                   ].map((s) => (
                     <div key={s.name} className={`rounded-xl border ${s.color} bg-white/5 backdrop-blur px-4 py-3 flex items-center gap-3`}>
                       <span className="text-2xl">{s.emoji}</span>
@@ -787,7 +896,7 @@ const evidencePoints = [
 
 function EvidenceSection() {
   return (
-    <section className="py-20 md:py-24">
+    <section className="py-20 md:py-24 bg-gradient-to-b from-white to-slate-50/80">
       <motion.div
         className="mx-auto max-w-6xl px-5"
         initial="hidden"
@@ -801,7 +910,7 @@ function EvidenceSection() {
             실전 전에 연습해야, 실제 대화가 덜 꼬입니다
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Leader&apos;s High는 멋진 이론보다, 오늘 바로 써야 하는 어려운 대화를 먼저 연습하게 만드는 데 집중합니다.
+            렛미프리는 멋진 이론보다, 오늘 바로 써야 하는 어려운 대화를 먼저 연습하게 만드는 데 집중합니다.
           </p>
         </motion.div>
 
@@ -821,137 +930,41 @@ function EvidenceSection() {
   );
 }
 
-/* ─── Pricing ─── */
-const plans = [
-  {
-    name: "무료 체험",
-    desc: "오늘 필요한 대화를 먼저 연습해보세요",
-    highlight: false,
-    priceOptions: [{ price: "₩0", period: "", href: SERVICE_URL, cta: "현재 플랜", disabled: true }],
-    features: [
-      "3개 시나리오 체험",
-      "시나리오당 1회 시도",
-      "12턴 시뮬레이션",
-      "간략 피드백 리포트",
-    ],
-  },
-  {
-    name: "프로",
-    desc: "반복 연습이 필요한 팀장을 위한 대표 플랜",
-    highlight: true,
-    priceOptions: [
-      { price: "₩8,900", period: "/ 10일", href: SERVICE_URL, cta: "결제하기 →", disabled: false },
-    ],
-    features: [
-      "20개 시나리오 · 시나리오당 3회",
-      "풀 피드백 리포트",
-      "실시간 즉시 코칭",
-      "이전 기록 보관 및 비교",
-    ],
-  },
-];
-
-function PricingSection({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
-  const trackedPlans = plans.map((plan) => ({
-    ...plan,
-    priceOptions: plan.priceOptions.map((option, index) => ({
-      ...option,
-      href: option.disabled ? option.href : buildTrackedServiceUrl(`pricing-${plan.name}-${index + 1}`),
-    })),
-  }));
-
+/* ─── Trial Card (Pricing 대체) ─── */
+function TrialCard({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
   return (
-    <section id="pricing" className="py-20 md:py-28 bg-gradient-to-b from-slate-50/80 to-white">
+    <section id="trial" className="py-16 md:py-20">
       <motion.div
-        className="mx-auto max-w-6xl px-5"
+        className="mx-auto max-w-3xl px-5"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-80px" }}
         variants={stagger}
       >
-        <motion.div variants={fadeUp} className="text-center mb-10">
-          <span className="text-sm font-medium text-primary mb-2 block">업그레이드는 나중에</span>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
-            지금은 무료 체험만 확인해도 충분합니다
+        <motion.div
+          variants={fadeUp}
+          className="rounded-2xl border border-primary/15 bg-primary/5 p-7 md:p-9 text-center"
+        >
+          <span className="text-sm font-medium text-primary mb-2 block">먼저 여기까지만</span>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-3">
+            지금은 무료 체험만 확인하셔도 충분합니다
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            이 페이지의 목적은 가격 비교가 아니라, 어떤 메시지가 체험 시작을 가장 잘 만드는지 확인하는 것입니다.
+          <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
+            가입 없이 3개 시나리오를 바로 체험하고, 더 필요할 때만 플랜을 검토하면 됩니다.
           </p>
-        </motion.div>
-
-        <motion.div variants={fadeUp} className="max-w-3xl mx-auto mb-8 rounded-2xl border border-primary/15 bg-primary/5 p-6 text-left">
-          <p className="text-sm font-semibold text-primary mb-2">먼저 여기까지만 보면 됩니다</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>• 무료 시나리오 3개 체험</li>
-            <li>• 가입 없이 바로 시작</li>
-            <li>• 체험 후 필요할 때만 프로 플랜 검토</li>
-          </ul>
-        </motion.div>
-
-        <motion.div variants={stagger} className="grid md:grid-cols-2 gap-6 items-start max-w-4xl mx-auto justify-center">
-          {trackedPlans.map((p) => (
-            <motion.div
-              key={p.name}
-              variants={fadeUp}
-              className={`rounded-2xl border p-7 transition-all ${
-                p.highlight
-                  ? "border-primary bg-white shadow-xl shadow-primary/10 ring-1 ring-primary/20 relative"
-                  : "border-border bg-white hover:shadow-lg"
-              }`}
-            >
-              {p.highlight && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-400 px-3 py-0.5 text-xs font-semibold text-slate-900">
-                  가장 인기
-                </span>
-              )}
-              <h3 className={`text-lg font-bold mb-1 ${p.highlight ? "text-primary" : "text-foreground"}`}>{p.name}</h3>
-              <p className="text-sm text-muted-foreground mb-5">{p.desc}</p>
-
-              {/* Price options */}
-              <div className="space-y-3 mb-6">
-                {p.priceOptions.map((opt, i) => (
-                  <div key={i}>
-                    {opt.disabled ? (
-                      <>
-                        <div className="mb-4">
-                          <span className="text-3xl font-bold text-foreground">{opt.price}</span>
-                        </div>
-                        <span className="block w-full rounded-xl py-3 text-center text-sm font-semibold bg-secondary text-muted-foreground cursor-default">
-                          {opt.cta}
-                        </span>
-                      </>
-                    ) : (
-                      <a
-                        href={opt.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => trackCtaClick(`pricing-${p.name}-${i + 1}`, SERVICE_URL)}
-                        className="flex items-center justify-between rounded-xl border border-border px-4 py-3 hover:border-primary/40 hover:bg-primary/5 transition-colors group"
-                      >
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-lg font-bold text-foreground">{opt.price}</span>
-                          <span className="text-sm text-muted-foreground">{opt.period}</span>
-                        </div>
-                        <span className="text-sm font-semibold text-amber-500 group-hover:text-amber-600 transition-colors">
-                          {opt.cta}
-                        </span>
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Features */}
-              <ul className="space-y-2.5">
-                {p.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-                    <span className="text-foreground">{f}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          ))}
+          <a
+            href={buildTrackedServiceUrl("trial-card")}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackCtaClick("trial-card", SERVICE_URL)}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+          >
+            무료로 3개 시나리오 체험
+            <ArrowRight className="h-4 w-4" />
+          </a>
+          <p className="mt-4 text-xs text-muted-foreground/80">
+            가입 없이 바로 시작 · 시나리오당 12턴 시뮬레이션 + 간략 리포트
+          </p>
         </motion.div>
       </motion.div>
     </section>
@@ -962,11 +975,11 @@ function PricingSection({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaConte
 const faqs = [
   {
     q: "AI 팀원이 정말 실제처럼 반응하나요?",
-    a: "네, 각 시나리오별로 성격, 감정 상태, 반응 패턴이 세밀하게 설계되어 있습니다. 대화 맥락을 이해하고 감정적으로도 자연스럽게 반응합니다.",
+    a: "각 시나리오별로 성격, 감정 상태, 반응 패턴이 세밀하게 설계되어 있습니다. 신뢰도(0~100)와 6단계 감정 상태에 따라 한국 직장 문화의 뉘앙스(한숨, 침묵, 돌려 말하기 등)까지 자연스럽게 반응합니다.",
   },
   {
     q: "한 번 연습에 얼마나 걸리나요?",
-    a: "보통 한 시나리오당 15~30분 정도 소요됩니다. 짧은 시간에 핵심적인 면담 연습을 할 수 있도록 설계되어 있습니다.",
+    a: "보통 한 시나리오당 15~30분 정도 소요됩니다. 무료 체험은 시나리오당 12턴으로 구성돼 짧은 시간에 핵심적인 면담 연습을 할 수 있도록 설계되어 있습니다.",
   },
   {
     q: "대화 데이터는 안전한가요?",
@@ -1086,7 +1099,7 @@ function Footer({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "bui
           <span className="flex h-6 w-6 items-center justify-center rounded bg-primary text-primary-foreground text-[10px]">
             L
           </span>
-          Leader&apos;s High
+          Letmefree
         </div>
         <div className="flex items-center gap-6 text-xs text-muted-foreground">
           <a
@@ -1141,11 +1154,12 @@ export default function LandingContent() {
       <Hero variant={variant} buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
       <ProblemSection variant={variant} />
       <SolutionSection />
+      <EmotionJourneySection />
       <HowItWorksSection />
       <FeaturesSection />
       <DemoPreview buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
       <EvidenceSection />
-      <PricingSection buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
+      <TrialCard buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
       <FAQSection />
       <FinalCTA buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
       <Footer buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
