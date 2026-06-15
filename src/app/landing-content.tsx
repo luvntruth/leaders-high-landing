@@ -26,6 +26,10 @@ const SERVICE_URL =
   process.env.NEXT_PUBLIC_SERVICE_URL ||
   "https://app.letmefree.xyz/#/onboarding";
 
+const LOGIN_URL =
+  process.env.NEXT_PUBLIC_LOGIN_URL ||
+  "https://app.letmefree.xyz/#/login";
+
 type LandingVariant = "practice" | "diagnosis" | "new-manager";
 
 const VARIANT_CONFIG: Record<
@@ -100,6 +104,7 @@ type CtaContext = {
   attribution: AttributionParams;
   trackCtaClick: (placement: string, target: string) => void;
   buildTrackedServiceUrl: (placement: string) => string;
+  buildTrackedLoginUrl: (placement: string) => string;
 };
 
 function normalizeVariant(value: string | null): LandingVariant {
@@ -126,6 +131,21 @@ function readAttribution(search: string): AttributionParams {
 
 function buildServiceUrl(attribution: AttributionParams, placement: string) {
   const targetUrl = new URL(SERVICE_URL);
+
+  targetUrl.searchParams.set("lp", attribution.lp);
+  targetUrl.searchParams.set("cta", placement);
+
+  if (attribution.utm_source) targetUrl.searchParams.set("utm_source", attribution.utm_source);
+  if (attribution.utm_medium) targetUrl.searchParams.set("utm_medium", attribution.utm_medium);
+  if (attribution.utm_campaign) targetUrl.searchParams.set("utm_campaign", attribution.utm_campaign);
+  if (attribution.utm_content) targetUrl.searchParams.set("utm_content", attribution.utm_content);
+  if (attribution.utm_term) targetUrl.searchParams.set("utm_term", attribution.utm_term);
+
+  return targetUrl.toString();
+}
+
+function buildLoginUrl(attribution: AttributionParams, placement: string) {
+  const targetUrl = new URL(LOGIN_URL);
 
   targetUrl.searchParams.set("lp", attribution.lp);
   targetUrl.searchParams.set("cta", placement);
@@ -170,7 +190,7 @@ const stagger = {
 };
 
 /* ─── Nav ─── */
-function Nav({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "trackCtaClick">) {
+function Nav({ buildTrackedServiceUrl, buildTrackedLoginUrl, trackCtaClick }: Pick<CtaContext, "buildTrackedServiceUrl" | "buildTrackedLoginUrl" | "trackCtaClick">) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -214,6 +234,15 @@ function Nav({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildT
             </a>
           ))}
           <a
+            href={buildTrackedLoginUrl("nav-desktop-login")}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackCtaClick("nav-desktop-login", LOGIN_URL)}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            로그인
+          </a>
+          <a
             href={buildTrackedServiceUrl("nav-desktop")}
             target="_blank"
             rel="noopener noreferrer"
@@ -254,6 +283,15 @@ function Nav({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "buildT
                   {l.label}
                 </a>
               ))}
+              <a
+                href={buildTrackedLoginUrl("nav-mobile-login")}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCtaClick("nav-mobile-login", LOGIN_URL)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+              >
+                로그인
+              </a>
               <a
                 href={buildTrackedServiceUrl("nav-mobile")}
                 target="_blank"
@@ -1174,6 +1212,7 @@ export default function LandingContent() {
   }, []);
 
   const buildTrackedServiceUrl = (placement: string) => buildServiceUrl(attribution, placement);
+  const buildTrackedLoginUrl = (placement: string) => buildLoginUrl(attribution, placement);
 
   const trackCtaClick = (placement: string, target: string) => {
     trackEvent("cta_click", {
@@ -1186,7 +1225,7 @@ export default function LandingContent() {
 
   return (
     <div className="bg-background text-foreground min-h-screen" style={{ scrollBehavior: "smooth" }}>
-      <Nav buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
+      <Nav buildTrackedServiceUrl={buildTrackedServiceUrl} buildTrackedLoginUrl={buildTrackedLoginUrl} trackCtaClick={trackCtaClick} />
       <Hero variant={variant} buildTrackedServiceUrl={buildTrackedServiceUrl} trackCtaClick={trackCtaClick} />
       <ProblemSection variant={variant} />
       <SolutionSection />
