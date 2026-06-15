@@ -954,7 +954,7 @@ const evidencePoints = [
   {
     icon: Target,
     title: "무료 3개로 시작 → 최대 40개로 확장",
-    desc: "무료 체험 3개로 먼저 감을 잡고, 필요하면 Pro 20개 / Ultra 40개로 반복 훈련 범위를 넓힙니다.",
+    desc: "무료 체험 3개로 먼저 감을 잡고, 필요하면 Pro 23개(무료 3개+직접 고르는 20개) / Ultra 40개로 반복 훈련 범위를 넓힙니다.",
   },
   {
     icon: Zap,
