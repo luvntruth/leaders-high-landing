@@ -608,11 +608,12 @@ function SolutionSection() {
 
 /* ─── Emotion Journey (NEW) ─── */
 const emotionStages = [
-  { range: "0-20", label: "강한 반발", emoji: "😡", desc: "공격적·회피적 반응", bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-600" },
-  { range: "21-40", label: "경계·방어", emoji: "😒", desc: "짧고 방어적인 답변", bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-600" },
-  { range: "41-55", label: "유보적 관망", emoji: "🤔", desc: "조심스러운 자기 표현", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-600" },
-  { range: "56-70", label: "점진적 수용", emoji: "🙂", desc: "어려움을 조금씩 공유", bg: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-700" },
-  { range: "71-85", label: "열린 대화", emoji: "😊", desc: "솔직한 속마음 공개", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-600" },
+  { range: "0-15", label: "적대적", emoji: "😡", desc: "공격적·회피적 반응", bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-600" },
+  { range: "16-30", label: "방어적", emoji: "😠", desc: "짧고 방어적인 답변", bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-600" },
+  { range: "31-45", label: "경계", emoji: "😒", desc: "조심스럽고 거리를 둠", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-600" },
+  { range: "46-55", label: "유보적 관망", emoji: "🤔", desc: "신중하게 지켜봄", bg: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-700" },
+  { range: "56-70", label: "마음 열기", emoji: "🙂", desc: "어려움을 조금씩 공유", bg: "bg-lime-50", border: "border-lime-200", text: "text-lime-700" },
+  { range: "71-85", label: "협력적", emoji: "😊", desc: "솔직한 속마음 공개", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-600" },
   { range: "86-100", label: "설득·합의", emoji: "🤝", desc: "스스로 개선안 제안", bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-600" },
 ];
 
@@ -641,7 +642,7 @@ function EmotionJourneySection() {
         </motion.div>
 
         {/* Stages strip */}
-        <motion.div variants={stagger} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
+        <motion.div variants={stagger} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
           {emotionStages.map((s) => (
             <motion.div
               key={s.range}
@@ -741,11 +742,12 @@ function HowItWorksSection() {
 }
 
 /* ─── Features ─── */
-type FeatureScope = "free" | "pro" | "soon";
+type FeatureScope = "free" | "pro" | "ultra" | "soon";
 
 const SCOPE_BADGE: Record<FeatureScope, { label: string; className: string }> = {
   free: { label: "무료 체험", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   pro: { label: "Pro 이상", className: "bg-amber-50 text-amber-700 border-amber-200" },
+  ultra: { label: "Ultra", className: "bg-violet-50 text-violet-700 border-violet-200" },
   soon: { label: "준비 중", className: "bg-slate-100 text-slate-600 border-slate-200" },
 };
 
@@ -789,7 +791,7 @@ const features: Array<{
     title: "커스텀 랩",
     desc: "오늘 면담할 그 팀원, 그 상황을 직접 입력해 나만의 시나리오로 연습할 수 있습니다.",
     color: "text-violet-600 bg-violet-50",
-    scope: "soon",
+    scope: "ultra",
   },
   {
     icon: BarChart3,
@@ -1049,7 +1051,7 @@ function TrialCard({ buildTrackedServiceUrl, trackCtaClick }: Pick<CtaContext, "
 const faqs = [
   {
     q: "AI 팀원이 정말 실제처럼 반응하나요?",
-    a: "각 시나리오별로 성격, 감정 상태, 반응 패턴이 세밀하게 설계되어 있습니다. 신뢰도(0~100)와 6단계 감정 상태에 따라 한국 직장 문화의 뉘앙스(한숨, 침묵, 돌려 말하기 등)까지 자연스럽게 반응합니다.",
+    a: "각 시나리오별로 성격, 감정 상태, 반응 패턴이 세밀하게 설계되어 있습니다. 신뢰도(0~100)와 7단계 감정 상태에 따라 한국 직장 문화의 뉘앙스(한숨, 침묵, 돌려 말하기 등)까지 자연스럽게 반응합니다.",
   },
   {
     q: "한 번 연습에 얼마나 걸리나요?",
