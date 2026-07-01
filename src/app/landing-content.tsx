@@ -112,7 +112,8 @@ function normalizeVariant(value: string | null): LandingVariant {
     return value;
   }
 
-  return "practice";
+  // 기본 랜딩: '진단'(diagnosis) — 광고 테스트에서 클릭률 최고로 확정.
+  return "diagnosis";
 }
 
 function readAttribution(search: string): AttributionParams {

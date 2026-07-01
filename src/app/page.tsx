@@ -33,7 +33,8 @@ const VARIANT_META: Record<
 function resolveVariant(raw: string | string[] | undefined): LandingVariant {
   const v = Array.isArray(raw) ? raw[0] : raw;
   if (v === "practice" || v === "diagnosis" || v === "new-manager") return v;
-  return "practice";
+  // 기본 랜딩: '진단'(diagnosis) — 광고 테스트에서 클릭률 최고로 확정.
+  return "diagnosis";
 }
 
 export async function generateMetadata({
